@@ -1,95 +1,120 @@
 # lion-resnet18
 ResNet-18 on CIFAR-10 with LION optimizer; +2.7% acc vs Adam and ~33% faster training.
 
+
 # Lion-ResNet18: Optimizing Image Classification with the Lion Optimizer
 
 ## 📌 Overview
 
-This project investigates the effectiveness of the **Lion optimizer** on the **ResNet-18 architecture** for image classification using the **CIFAR-10 dataset**.
-While Adam is a widely used baseline optimizer, Lion introduces a **sign-based update rule** that is both **memory-efficient** and **faster in convergence**.
-
-Our experiments demonstrate that Lion not only improves accuracy but also reduces training time significantly compared to Adam.
+This project evaluates the **Lion optimizer** on **ResNet-18** for CIFAR-10 image classification, comparing it against **Adam** under identical training conditions. Lion uses a **sign-based update** that tends to converge faster with lower memory overhead. In our experiments, Lion delivers higher accuracy and significantly shorter training time than Adam, averaged across multiple independent runs.&#x20;
 
 ---
 
 ## 🚀 Key Results
 
-* **Accuracy**:
+* **Accuracy (mean of 5 runs)**
 
-  * ResNet-18 + Lion → **81.16%**
-  * ResNet-18 + Adam → **78.40%**
-* **Training Time**:
+  * ResNet-18 + **Lion** → **81.16%**
+  * ResNet-18 + **Adam** → **78.40%**.&#x20;
+* **Training time**
 
-  * Lion converged **32.91% faster** (≈ 270.62s vs 403.37s on average).
-* **Stability**: Lion produced more consistent results across multiple trials.
-* **Efficiency**: Achieved higher accuracy with \~2× fewer epochs.
+  * Lion averaged **270.62 s** vs Adam **403.37 s** (**\~32.91% faster**).&#x20;
+* **Convergence behavior**
+
+  * Lion rises faster on validation accuracy and maintains lower, steadier validation loss, reaching its peak early with stable early-stopping. &#x20;
 
 ---
 
 ## 🔬 Methodology
 
-1. **Architecture**:
+1. **Model & Dataset**
 
-   * Base model: **ResNet-18** (18-layer residual network with skip connections).
-   * No structural modifications, only optimizer swap to maintain fairness.
+   * Architecture: **ResNet-18** (residual blocks with skip connections), chosen for its balance of capacity and efficiency. &#x20;
+   * Dataset: **CIFAR-10** (50k train / 10k test, 32×32×3).&#x20;
 
-2. **Dataset**:
+2. **Optimizers & Hyperparameters**
 
-   * **CIFAR-10** → 60k images (32×32, 10 classes).
-   * Split: 50k train, 10k test.
+   * **Adam** baseline with **LR = 0.001**.
+   * **Lion** with **LR = 0.0001** (i.e., `0.001 / 10`) to stabilize the sign-based update; Lion generally benefits from a smaller LR.&#x20;
+   * Lion implementation: **custom PyTorch optimizer** adapted from *lucidrains/lion-pytorch*.&#x20;
 
-3. **Optimizers**:
+3. **Training Procedure**
 
-   * **Adam**: Baseline, LR = 1e-3.
-   * **Lion**: Custom PyTorch implementation, LR = 1e-4 (lower to stabilize sign-based updates).
-
-4. **Training Setup**:
-
-   * Early stopping based on validation loss.
-   * Cross-validation and repeated runs (×5) for statistical robustness.
-   * Metrics: Accuracy, precision, recall, confusion matrix.
-
-5. **Implementation Details**:
-
-   * `lion_optimizer.py` → Custom PyTorch optimizer implementation.
-   * Training notebooks (`Train2.ipynb` … `Train5.ipynb`) include experimental runs and results.
-   * Final evaluation in `Model_final.ipynb`.
+   * **Early stopping**: `patience=3`, `min_delta=0.01` (monitoring validation loss).
+   * **Five independent runs** per optimizer; we report averaged metrics for robustness.&#x20;
 
 ---
 
-## 📈 Visual Insights
+## 🧪 Exact Training Snippet (as used)
 
-* **Confusion Matrices**: Lion reduced misclassification across most CIFAR-10 classes.
-* **Loss & Accuracy Curves**: Lion showed faster convergence and smoother stability.
-* **Training Time Bar Charts**: Clear evidence of reduced compute time per run.
+```python
+# Early stopping parameters
+early_stopping = EarlyStopping(patience=3, min_delta=0.01, verbose=True)
+
+# Train ResNet-18 (Adam)
+print("Training Resnet-18(Adam)")
+Resnet18_adam = ResNet18().to(device)
+optimizer_adam = optim.Adam(Resnet18_adam.parameters(), lr=0.001)
+train_losses_adam, train_accuracies_adam, val_losses_adam, val_accuracies_adam, train_time_adam = [], [], [], [], []
+train_model_with_early_stopping(
+    Resnet18_adam, optimizer_adam,
+    train_losses_adam, train_accuracies_adam, val_losses_adam, val_accuracies_adam,
+    early_stopping, train_time_adam
+)
+print("ResNet-18(Adam) training complete with early stopping\n")
+
+# Reset early stopping
+early_stopping = EarlyStopping(patience=3, min_delta=0.01, verbose=True)
+
+# Train ResNet-18 (Lion)
+print("Training Resnet-18(Lion)")
+Resnet18_lion = ResNet18().to(device)
+optimizer_lion = Lion(Resnet18_lion.parameters(), lr=0.001/10)  # i.e., 0.0001
+train_losses_lion, train_accuracies_lion, val_losses_lion, val_accuracies_lion, train_time_lion = [], [], [], [], []
+train_model_with_early_stopping(
+    Resnet18_lion, optimizer_lion,
+    train_losses_lion, train_accuracies_lion, val_losses_lion, val_accuracies_lion,
+    early_stopping, train_time_lion
+)
+print("ResNet-18(Lion) training complete with early stopping\n")
+```
+
+---
+
+## 📈 What We Measure
+
+* **Accuracy (test set)**, **precision**, **recall**
+* **Validation curves** (loss & accuracy) to visualize convergence
+* **Training time** to compare efficiency
+* **Average across 5 runs** for statistical reliability (see final aggregation notebook)&#x20;
 
 ---
 
 ## 🛠️ Repository Structure
 
 ```
-├── lion_optimizer.py      # Custom PyTorch Lion optimizer
-├── Model_final.ipynb      # Final evaluation notebook
-├── Train2.ipynb           # Training run with Lion vs Adam
+├── lion_optimizer.py                 # Custom PyTorch Lion optimizer (adapted from lucidrains/lion-pytorch)
+├── Train2.ipynb                      # Training run (Adam vs Lion) with early stopping
 ├── Train3.ipynb
 ├── Train4.ipynb
 ├── Train5.ipynb
-├── Report.pdf             # Full project report with methodology & results
-└── README.md              # Project documentation
+├── Model_final.ipynb                 # Aggregates metrics and plots
+├── Calculate_Average_Performance.ipynb  # Computes averaged accuracy/time/precision/recall across runs
+├── Report.pdf                        # Full write-up (methods, analysis, results)
+└── README.md
 ```
 
 ---
 
-## ⚡ Installation & Usage
+## ⚙️ Setup
 
-### Requirements
+**Requirements**
 
 * Python 3.8+
-* PyTorch ≥ 1.12
-* torchvision
-* matplotlib, seaborn (for visualizations)
+* PyTorch ≥ 1.12, torchvision
+* numpy, matplotlib, seaborn (viz), scikit-learn (metrics)
 
-### Setup
+**Install**
 
 ```bash
 git clone https://github.com/<your-username>/lion-resnet18.git
@@ -97,33 +122,46 @@ cd lion-resnet18
 pip install -r requirements.txt
 ```
 
-### Training
+**Run**
 
-```python
-# Example: Training ResNet-18 with Lion
-from lion_optimizer import Lion
-import torch.optim as optim
-
-model = ...  # ResNet-18
-optimizer = Lion(model.parameters(), lr=1e-4, betas=(0.9, 0.99), weight_decay=1e-2)
-```
-
-Or simply open one of the training notebooks (`TrainX.ipynb`) to reproduce results.
+* Open any `TrainX.ipynb` to reproduce a single run (Adam vs Lion with early stopping).
+* Open `Model_final.ipynb` and `Calculate_Average_Performance.ipynb` to view **mean metrics and charts** across runs.
 
 ---
 
-## 🎯 Contributions
+## 🧠 How Lion Works (Intuition)
 
-* **Tan Yi Zhao** (Leader): Implemented ResNet-18 with Lion, training & preprocessing, final integration.
-* **Sim Wen Ken**: Data preparation, model architecture explanation.
-* **Leong Ting Yi**: Validation strategies, metrics, visualizations.
-* **Hong Jia Xuan**: Abstract, introduction, literature review.
+Lion uses **sign-momentum** updates with weight decay, simplifying state (no 2nd-moment buffers) and often yielding **faster, stabler convergence** with lower memory. On CIFAR-10 + ResNet-18, this manifested as **earlier accuracy gains** and **smoother loss** compared to Adam during training/validation.  &#x20;
 
 ---
 
-## 📚 Reference
+## 👥 Contributions
 
-* Chen, X., et al. *Symbolic Discovery of Optimization Algorithms*. arXiv:2302.06675 (2023).
-* He, K., et al. *Deep Residual Learning for Image Recognition*. CVPR (2016).
+* **Tan Yi Zhao** — ResNet-18 + Lion integration, training pipeline (early stopping), data preprocessing, average-metrics computation, report consolidation.
+* **Sim Wen Ken** — Data prep, architecture description.
+* **Leong Ting Yi** — Validation strategy, metrics, visualizations.
+* **Hong Jia Xuan** — Abstract, introduction, literature review.
 
+---
+
+## 📚 References
+
+* Chen et al., *Symbolic Discovery of Optimization Algorithms*, 2023.
+* He et al., *Deep Residual Learning for Image Recognition*, CVPR 2016.
+* Project report excerpts used in this README: see `Report.pdf` (abstract, methods, results).&#x20;
+
+---
+
+## ⚠️ Acknowledgements
+
+* **Lion optimizer implementation** in `lion_optimizer.py` is **adapted from** the open-source project *lucidrains/lion-pytorch* (with minor modifications for clarity/integration).&#x20;
+* All experiments, early-stopping setup, and the **average-performance computation** notebooks were developed by this project team.
+
+---
+
+## ✨ Resume Highlights
+
+* Implemented and evaluated a **custom Lion optimizer workflow** on **ResNet-18**, demonstrating **+2.76 pp test accuracy** and **\~33% faster training** vs Adam, averaged across five runs with early stopping and robust aggregation.&#x20;
+
+---
 
