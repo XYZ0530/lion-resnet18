@@ -150,18 +150,4 @@ Lion uses **sign-momentum** updates with weight decay, simplifying state (no 2nd
 * He et al., *Deep Residual Learning for Image Recognition*, CVPR 2016.
 * Project report excerpts used in this README: see `Report.pdf` (abstract, methods, results).&#x20;
 
----
-
-## ⚠️ Acknowledgements
-
-* **Lion optimizer implementation** in `lion_optimizer.py` is **adapted from** the open-source project *lucidrains/lion-pytorch* (with minor modifications for clarity/integration).&#x20;
-* All experiments, early-stopping setup, and the **average-performance computation** notebooks were developed by this project team.
-
----
-
-## ✨ Resume Highlights
-
-* Implemented and evaluated a **custom Lion optimizer workflow** on **ResNet-18**, demonstrating **+2.76 pp test accuracy** and **\~33% faster training** vs Adam, averaged across five runs with early stopping and robust aggregation.&#x20;
-
----
 
