@@ -4,6 +4,11 @@ ResNet-18 on CIFAR-10 with LION optimizer; +2.7% acc vs Adam and ~33% faster tra
 
 # Lion-ResNet18: Optimizing Image Classification with the Lion Optimizer
 
+## 🦁 Background on Lion
+
+The Lion optimizer (Evolved Sign Momentum) is a recently proposed deep learning optimizer developed by researchers at Google and UCLA (Chen et al., 2023). Instead of relying on adaptive second-order moments like Adam, Lion uses a sign-based update rule with momentum. This makes it memory-efficient, easier to tune with lower learning rates, and often capable of achieving faster convergence while maintaining strong generalization. Lion has shown excellent results on architectures like Vision Transformers and MLP-Mixers, but had not been tested on ResNet-18 before this project.
+
+
 ## 📌 Overview
 
 This project evaluates the **Lion optimizer** on **ResNet-18** for CIFAR-10 image classification, comparing it against **Adam** under identical training conditions. Lion uses a **sign-based update** that tends to converge faster with lower memory overhead. In our experiments, Lion delivers higher accuracy and significantly shorter training time than Adam, averaged across multiple independent runs.&#x20;
