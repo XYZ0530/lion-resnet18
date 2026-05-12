@@ -131,6 +131,6 @@ Note: CIFAR-10 may be downloaded automatically by torchvision when the notebook 
 - How to evaluate model results using accuracy, precision, recall, and training time.
 - How to document deep learning experiments for technical and recruiter audiences.
 
-## Resume Summary
+## Summary
 
 Built a PyTorch ResNet-18 image classification experiment on CIFAR-10 comparing Adam and Lion optimizers. Lion achieved **81.16% accuracy** versus Adam's **78.40%**, while reducing average training time from **403.37s** to **270.62s** (**32.91% faster**), demonstrating deep learning experimentation, optimizer evaluation, and model performance analysis.
